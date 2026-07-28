@@ -473,7 +473,17 @@
             });
         }
 
-        window.onload = calculate;
+        // window.onload = calculate;
+        window.onload = function() {
+            // Tự động gán tháng hiện tại vào ô Tháng kết toán
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('endDate').value = `${year}-${month}`;
+
+            // Chạy hàm tính toán luôn
+            calculate();
+        };
     </script>
 </body>
 </html>
