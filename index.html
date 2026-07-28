@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng Tính Lãi Vay Gia Đình</title>
+    <title>Bảng Tính Lãi Vay Gia Đình - V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -20,33 +20,35 @@
             transform: translateX(100%);
             border-color: white;
         }
-        .tooltip {
+        /* Tooltip fix */
+        .tooltip-container {
             position: relative;
             display: inline-block;
             cursor: help;
             border-bottom: 1px dotted #6b7280;
         }
-        .tooltip .tooltiptext {
+        .tooltip-container .tooltiptext {
             visibility: hidden;
-            width: 250px;
+            width: 200px;
             background-color: #1f2937;
             color: #fff;
-            text-align: left;
+            text-align: center;
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 8px;
             position: absolute;
-            z-index: 10;
+            z-index: 50;
             bottom: 125%;
             left: 50%;
-            margin-left: -125px;
+            margin-left: -100px;
             opacity: 0;
             transition: opacity 0.3s;
             font-size: 0.75rem;
             font-weight: normal;
             line-height: 1.4;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            white-space: normal;
         }
-        .tooltip .tooltiptext::after {
+        .tooltip-container .tooltiptext::after {
             content: "";
             position: absolute;
             top: 100%;
@@ -56,9 +58,14 @@
             border-style: solid;
             border-color: #1f2937 transparent transparent transparent;
         }
-        .tooltip:hover .tooltiptext {
+        .tooltip-container:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
+        }
+        
+        /* Đảm bảo table không bị bóp */
+        table {
+            min-width: 800px;
         }
     </style>
 </head>
@@ -74,15 +81,19 @@
                     <h2 class="font-bold text-lg mb-4 border-b border-blue-200 pb-2">Thông Tin Khoản Vay</h2>
                     
                     <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1 tooltip">Tiền gốc ban đầu (VNĐ)
-                            <span class="tooltiptext">Số tiền thực tế đã cho vay ban đầu vào ngày bắt đầu.</span>
+                        <label class="block text-sm font-medium mb-1">
+                            <span class="tooltip-container">Tiền gốc ban đầu (VNĐ)
+                                <span class="tooltiptext">Số tiền thực tế đã cho vay ban đầu vào ngày bắt đầu.</span>
+                            </span>
                         </label>
                         <input type="number" id="principal" value="3500000000" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400">
                     </div>
                     
                     <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1 tooltip">Lãi suất hàng năm (%)
-                            <span class="tooltiptext">Tỷ lệ phần trăm tính lãi mỗi năm. Sẽ được chia cho 12 để tính lãi suất hàng tháng.</span>
+                        <label class="block text-sm font-medium mb-1">
+                            <span class="tooltip-container">Lãi suất hàng năm (%)
+                                <span class="tooltiptext">Tỷ lệ phần trăm tính lãi mỗi năm. Sẽ được chia cho 12 để tính lãi suất hàng tháng.</span>
+                            </span>
                         </label>
                         <input type="number" id="rate" value="8" step="0.1" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400">
                     </div>
@@ -100,36 +111,39 @@
 
                     <!-- Toggle Lãi Kép / Lãi Đơn -->
                     <div class="flex items-center justify-between mt-4 pt-4 border-t border-blue-200">
-                        <div class="tooltip font-medium text-sm text-blue-900">
-                            Chế độ tính lãi
-                            <span class="tooltiptext">Lãi kép: Lãi sinh ra được cộng vào gốc. Lãi đơn: Lãi chỉ tính trên gốc thực tế.</span>
+                        <div class="font-medium text-sm text-blue-900">
+                            <span class="tooltip-container">Chế độ tính lãi
+                                <span class="tooltiptext">Lãi kép: Lãi sinh ra được cộng vào gốc.<br>Lãi đơn: Lãi chỉ tính trên gốc thực tế.</span>
+                            </span>
                         </div>
                         <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
                             <input type="checkbox" name="toggle" id="isCompound" checked class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0 left-0 transition-transform duration-300 ease-in-out"/>
                             <label for="isCompound" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300 ease-in-out"></label>
                         </div>
-                        <span id="interestTypeLabel" class="text-sm font-bold text-blue-700">Lãi Kép</span>
+                        <span id="interestTypeLabel" class="text-sm font-bold text-blue-700 w-16 text-right">Lãi Kép</span>
                     </div>
                 </div>
 
                 <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
                     <div class="flex justify-between items-center border-b border-emerald-200 pb-2 mb-4">
-                        <h2 class="font-bold text-lg tooltip">Các Khoản Đã Thu Hồi
-                            <span class="tooltiptext">Các khoản tiền đã đòi lại được. Tiền này sẽ được dùng để cấn trừ vào nợ.</span>
+                        <h2 class="font-bold text-lg">
+                            <span class="tooltip-container">Các Khoản Đã Thu Hồi
+                                <span class="tooltiptext">Các khoản tiền đã đòi lại được. Tiền này sẽ được dùng để cấn trừ vào nợ.</span>
+                            </span>
                         </h2>
-                        <button onclick="addRepaymentRow()" class="bg-emerald-600 text-white px-2 py-1 rounded text-sm hover:bg-emerald-700">+ Thêm</button>
+                        <button onclick="addRepaymentRow()" class="bg-emerald-600 text-white px-2 py-1 rounded text-sm hover:bg-emerald-700 shadow">+ Thêm</button>
                     </div>
                     
                     <div id="repayments-container" class="space-y-3">
                         <div class="repayment-row flex gap-2 items-center">
                             <input type="month" value="2023-02" class="repay-date w-1/2 p-2 border rounded text-sm">
                             <input type="number" value="100000000" class="repay-amount w-1/2 p-2 border rounded text-sm" placeholder="Số tiền (VNĐ)">
-                            <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button>
+                            <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2 hover:text-red-700">X</button>
                         </div>
                         <div class="repayment-row flex gap-2 items-center">
                             <input type="month" value="2026-04" class="repay-date w-1/2 p-2 border rounded text-sm">
                             <input type="number" value="100000000" class="repay-amount w-1/2 p-2 border rounded text-sm" placeholder="Số tiền (VNĐ)">
-                            <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button>
+                            <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2 hover:text-red-700">X</button>
                         </div>
                     </div>
                 </div>
@@ -137,63 +151,84 @@
                 <!-- Chú giải thuật ngữ (Legend) -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-700 space-y-2">
                     <h3 class="font-bold text-gray-900 border-b pb-1 mb-2">📚 Chú giải thuật ngữ</h3>
-                    <p><strong>Dư nợ đầu kỳ:</strong> Tổng nợ ở ngày đầu tiên của tháng (chưa cộng lãi tháng đó).</p>
-                    <p><strong>Lãi phát sinh:</strong> Tiền lãi sinh ra trong tháng đó (Dựa trên nợ đầu kỳ x lãi suất).</p>
-                    <p><strong>Dư nợ cuối kỳ:</strong> Tổng nợ ở ngày cuối tháng (Đã bao gồm: Nợ đầu kỳ + Lãi phát sinh - Tiền thu hồi).</p>
-                    <p><strong>Lãi kép:</strong> Tiền lãi mỗi tháng chưa trả sẽ nhập luôn vào nợ gốc để tính lãi cho tháng sau.</p>
-                    <p><strong>Lãi đơn:</strong> Lãi chỉ tính trên số nợ gốc ban đầu. Khi thu hồi tiền, theo chuẩn tài chính, sẽ trừ vào tiền lãi tích lũy trước, dư ra mới trừ vào gốc.</p>
+                    <p><strong>Dư nợ đầu kỳ:</strong> Tổng nợ ở ngày đầu tháng (chưa cộng lãi tháng đó).</p>
+                    <p><strong>Lãi phát sinh:</strong> Tiền lãi sinh ra trong tháng (Nợ đầu kỳ × lãi tháng).</p>
+                    <p><strong>Dư nợ cuối kỳ:</strong> Tổng nợ ở cuối tháng (Đầu kỳ + Lãi - Tiền thu hồi).</p>
+                    <p><strong>Lãi kép:</strong> Lãi chưa trả nhập vào gốc để tính lãi tháng sau (Lãi mẹ đẻ lãi con).</p>
+                    <p><strong>Lãi đơn:</strong> Lãi chỉ tính trên gốc ban đầu. Tiền thu hồi trừ vào lãi trước, dư mới trừ gốc.</p>
                 </div>
 
-                <button onclick="calculate()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg">
+                <button onclick="calculate()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg text-lg">
                     TÍNH TOÁN & CẬP NHẬT
                 </button>
             </div>
 
             <!-- CỘT KẾT QUẢ -->
-            <div class="lg:col-span-2 space-y-6">
+            <div class="lg:col-span-2 space-y-6 flex flex-col h-full">
                 <!-- Tổng quan -->
-                <div class="bg-gray-800 text-white p-6 rounded-lg shadow grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-800 text-white p-6 rounded-lg shadow grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <h2 class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-1 tooltip text-left">Tổng dư nợ tại thời điểm kết toán
-                            <span class="tooltiptext">Số tiền cuối cùng người vay còn thiếu tính đến hết tháng kết toán.</span>
+                        <h2 class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-2">
+                            <span class="tooltip-container">Tổng dư nợ thời điểm kết toán
+                                <span class="tooltiptext">Số tiền cuối cùng người vay còn thiếu tính đến hết tháng kết toán.</span>
+                            </span>
                         </h2>
-                        <div id="finalBalance" class="text-4xl font-bold text-emerald-400">0 VNĐ</div>
-                        <div id="summaryText" class="text-gray-400 mt-2 text-sm"></div>
+                        <div id="finalBalance" class="text-4xl md:text-3xl lg:text-4xl font-bold text-emerald-400">0 VNĐ</div>
                     </div>
-                    <div id="simpleInterestDetail" class="hidden md:border-l md:border-gray-600 md:pl-4">
-                        <h2 class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-1">Chi tiết Lãi Đơn</h2>
-                        <div class="text-sm mt-2 text-gray-300">Gốc còn lại: <span id="finalPrincipal" class="font-bold text-white">0</span></div>
-                        <div class="text-sm mt-1 text-gray-300">Lãi tích lũy chưa trả: <span id="finalAccumulated" class="font-bold text-white">0</span></div>
+                    
+                    <!-- Khung chi tiết dùng chung cho cả Lãi Kép và Lãi Đơn -->
+                    <div id="detailStats" class="md:border-l md:border-gray-600 md:pl-6 flex flex-col justify-center">
+                        <h2 id="detailTitle" class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-2 border-b border-gray-600 pb-1">Chi tiết Lãi Kép</h2>
+                        <div class="text-sm mt-2 text-gray-300 flex justify-between">
+                            <span id="stat1Label">Gốc ban đầu:</span> 
+                            <span id="stat1" class="font-medium text-white">0</span>
+                        </div>
+                        <div class="text-sm mt-1 text-gray-300 flex justify-between">
+                            <span id="stat2Label">Tổng lãi phát sinh:</span> 
+                            <span id="stat2" class="font-medium text-orange-400">0</span>
+                        </div>
+                        <div class="text-sm mt-1 text-gray-300 flex justify-between">
+                            <span id="stat3Label">Tổng đã thu hồi:</span> 
+                            <span id="stat3" class="font-medium text-emerald-400">0</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Biểu đồ -->
-                <div class="bg-white p-4 border rounded-lg shadow-inner">
-                    <canvas id="balanceChart" height="100"></canvas>
+                <div class="bg-white p-4 border rounded-lg shadow-sm">
+                    <canvas id="balanceChart" height="200" style="max-height: 250px;"></canvas>
                 </div>
 
                 <!-- Bảng chi tiết -->
-                <div class="overflow-x-auto border rounded-lg max-h-[500px] overflow-y-auto">
-                    <table class="w-full text-left border-collapse relative">
-                        <thead class="sticky top-0 z-10 shadow">
-                            <tr class="bg-gray-100 text-gray-700 text-sm">
-                                <th class="p-3 border-b bg-gray-100">Thời điểm</th>
-                                <th class="p-3 border-b bg-gray-100 text-right tooltip">Dư nợ đầu kỳ
-                                    <span class="tooltiptext">Nợ đầu tháng làm mốc tính lãi.</span>
-                                </th>
-                                <th class="p-3 border-b bg-gray-100 text-right tooltip">Lãi phát sinh
-                                    <span class="tooltiptext">Tiền lãi sinh ra trong tháng này.</span>
-                                </th>
-                                <th class="p-3 border-b bg-gray-100 text-right text-emerald-700">Tiền thu hồi</th>
-                                <th class="p-3 border-b bg-gray-100 text-right tooltip">Dư nợ cuối kỳ
-                                    <span class="tooltiptext">Nợ chuyển sang tháng sau (= Đầu kỳ + Lãi - Thu hồi)</span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody" class="text-sm">
-                            <!-- JS sinh dữ liệu vào đây -->
-                        </tbody>
-                    </table>
+                <div class="border rounded-lg flex-grow flex flex-col" style="min-height: 300px;">
+                    <div class="overflow-x-auto overflow-y-auto flex-grow" style="max-height: 400px;">
+                        <table class="w-full text-left border-collapse relative">
+                            <thead class="sticky top-0 z-20 shadow bg-gray-100">
+                                <tr class="text-gray-700 text-sm">
+                                    <th class="p-3 border-b bg-gray-100 font-semibold whitespace-nowrap">Thời điểm</th>
+                                    <th class="p-3 border-b bg-gray-100 text-right font-semibold whitespace-nowrap">
+                                        <span class="tooltip-container">Dư nợ đầu kỳ
+                                            <span class="tooltiptext">Nợ đầu tháng làm mốc tính lãi.</span>
+                                        </span>
+                                    </th>
+                                    <th class="p-3 border-b bg-gray-100 text-right font-semibold whitespace-nowrap">
+                                        <span class="tooltip-container">Lãi phát sinh
+                                            <span class="tooltiptext">Tiền lãi sinh ra trong tháng này.</span>
+                                        </span>
+                                    </th>
+                                    <th class="p-3 border-b bg-gray-100 text-right font-semibold whitespace-nowrap text-emerald-700">Tiền thu hồi</th>
+                                    <th class="p-3 border-b bg-gray-100 text-right font-semibold whitespace-nowrap">
+                                        <span class="tooltip-container">Dư nợ cuối kỳ
+                                            <span class="tooltiptext">Nợ chuyển sang tháng sau (= Đầu kỳ + Lãi - Thu hồi)</span>
+                                        </span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="text-sm">
+                                <!-- JS sinh dữ liệu vào đây -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -216,9 +251,9 @@
             const row = document.createElement('div');
             row.className = 'repayment-row flex gap-2 items-center';
             row.innerHTML = `
-                <input type="month" class="repay-date w-1/2 p-2 border rounded text-sm">
-                <input type="number" class="repay-amount w-1/2 p-2 border rounded text-sm" placeholder="Số tiền (VNĐ)">
-                <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button>
+                <input type="month" class="repay-date w-1/2 p-2 border rounded text-sm focus:ring-2 focus:ring-emerald-400">
+                <input type="number" class="repay-amount w-1/2 p-2 border rounded text-sm focus:ring-2 focus:ring-emerald-400" placeholder="Số tiền (VNĐ)">
+                <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2 hover:text-red-700">X</button>
             `;
             container.appendChild(row);
         }
@@ -239,6 +274,11 @@
 
             const startDate = new Date(startInput);
             const endDate = new Date(endInput);
+
+            if (startDate > endDate) {
+                alert("Tháng kết toán phải lớn hơn tháng vay!");
+                return;
+            }
 
             const repaymentElements = document.querySelectorAll('.repayment-row');
             const repayments = {};
@@ -268,8 +308,13 @@
             const tableRows = [];
             
             let totalPaid = 0;
+            let totalInterestGenerated = 0;
 
-            while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+            // Prevent infinite loops just in case
+            let loopCount = 0;
+            const maxLoops = 1200; // 100 years max
+
+            while ((currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) && loopCount < maxLoops) {
                 
                 const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
                 const displayDate = `${currentMonth + 1}/${currentYear}`;
@@ -284,7 +329,9 @@
                     startBalDisplay = currentBalance;
                     interestThisMonth = currentBalance * monthlyRate;
                     
+                    totalInterestGenerated += interestThisMonth;
                     currentBalance += interestThisMonth;
+                    
                     if (repaidThisMonth > 0) {
                         currentBalance -= repaidThisMonth;
                         totalPaid += repaidThisMonth;
@@ -295,13 +342,14 @@
                     startBalDisplay = currentPrincipal + accumulatedInterest;
                     interestThisMonth = currentPrincipal * monthlyRate;
                     
+                    totalInterestGenerated += interestThisMonth;
                     accumulatedInterest += interestThisMonth;
 
                     if (repaidThisMonth > 0) {
                         totalPaid += repaidThisMonth;
                         let remainingPayment = repaidThisMonth;
                         
-                        // Theo chuẩn tài chính: Tiền trả được trừ vào nợ lãi trước, dư mới trừ vào gốc
+                        // Tiền trả được trừ vào nợ lãi trước, dư mới trừ vào gốc
                         if (remainingPayment >= accumulatedInterest) {
                             remainingPayment -= accumulatedInterest;
                             accumulatedInterest = 0;
@@ -313,25 +361,22 @@
                     endBalDisplay = currentPrincipal + accumulatedInterest;
                 }
 
-                // Luôn hiển thị dữ liệu mỗi 3 tháng, mốc cuối năm, hoặc tháng có trả tiền, hoặc tháng kết toán để bảng không quá dài mà vẫn chi tiết.
-                // Để minh bạch tuyệt đối, ở đây sẽ xuất toàn bộ dữ liệu ra bảng thay vì chỉ xuất cuối năm.
+                // Vẽ biểu đồ 3 tháng/lần, hoặc khi có trả tiền, hoặc đầu/cuối năm
+                const isImportantMonth = repaidThisMonth > 0 || (currentMonth === 0) || (currentMonth === 11) || (currentYear === endYear && currentMonth === endMonth) || (currentMonth % 3 === 0);
                 
-                const isImportantMonth = repaidThisMonth > 0 || (currentMonth === 11) || (currentYear === endYear && currentMonth === endMonth);
-                
-                // Đẩy vào biểu đồ mốc cuối năm hoặc tháng có giao dịch
                 if (isImportantMonth) {
                     chartLabels.push(displayDate);
                     chartData.push(endBalDisplay);
                 }
                 
-                // Đẩy TOÀN BỘ lịch sử vào bảng để dễ theo dõi
+                // Đẩy TOÀN BỘ lịch sử vào bảng
                 tableRows.push(`
-                    <tr class="border-b hover:bg-gray-50 transition ${repaidThisMonth > 0 ? 'bg-emerald-50' : ''}">
-                        <td class="p-3 whitespace-nowrap">${displayDate} ${repaidThisMonth > 0 ? '<span class="text-xs bg-emerald-500 text-white px-2 py-1 rounded ml-1">Có trả</span>' : ''}</td>
-                        <td class="p-3 text-right text-gray-600">${formatMoney(startBalDisplay)}</td>
-                        <td class="p-3 text-right text-orange-600">+${formatMoney(interestThisMonth)}</td>
-                        <td class="p-3 text-right font-semibold text-emerald-600">${repaidThisMonth > 0 ? '-' + formatMoney(repaidThisMonth) : '-'}</td>
-                        <td class="p-3 text-right font-bold text-gray-800">${formatMoney(endBalDisplay)}</td>
+                    <tr class="border-b hover:bg-gray-100 transition ${repaidThisMonth > 0 ? 'bg-emerald-50' : 'bg-white'}">
+                        <td class="p-3 whitespace-nowrap text-gray-700">${displayDate} ${repaidThisMonth > 0 ? '<span class="text-xs bg-emerald-500 text-white px-2 py-0.5 rounded ml-2 font-medium">Có trả</span>' : ''}</td>
+                        <td class="p-3 text-right text-gray-500 font-mono">${formatMoney(startBalDisplay)}</td>
+                        <td class="p-3 text-right text-orange-500 font-mono">+${formatMoney(interestThisMonth)}</td>
+                        <td class="p-3 text-right font-semibold text-emerald-600 font-mono">${repaidThisMonth > 0 ? '-' + formatMoney(repaidThisMonth) : '-'}</td>
+                        <td class="p-3 text-right font-bold text-gray-800 font-mono">${formatMoney(endBalDisplay)}</td>
                     </tr>
                 `);
 
@@ -340,23 +385,40 @@
                     currentMonth = 0;
                     currentYear++;
                 }
+                loopCount++;
             }
 
-            // Update UI
+            // Update UI Stats Box
             if (isCompound) {
                 document.getElementById('finalBalance').innerText = formatMoney(currentBalance);
-                document.getElementById('simpleInterestDetail').classList.add('hidden');
+                
+                document.getElementById('detailTitle').innerText = 'Chi tiết Dòng Tiền (Lãi Kép)';
+                
+                document.getElementById('stat1Label').innerText = 'Gốc ban đầu:';
+                document.getElementById('stat1').innerText = formatMoney(principal);
+                
+                document.getElementById('stat2Label').innerText = 'Tổng lãi đã cộng dồn:';
+                document.getElementById('stat2').innerText = "+" + formatMoney(totalInterestGenerated);
+                
+                document.getElementById('stat3Label').innerText = 'Tổng đã thu hồi:';
+                document.getElementById('stat3').innerText = "-" + formatMoney(totalPaid);
+                
             } else {
                 document.getElementById('finalBalance').innerText = formatMoney(currentPrincipal + accumulatedInterest);
-                document.getElementById('finalPrincipal').innerText = formatMoney(currentPrincipal);
-                document.getElementById('finalAccumulated').innerText = formatMoney(accumulatedInterest);
-                document.getElementById('simpleInterestDetail').classList.remove('hidden');
-                document.getElementById('simpleInterestDetail').classList.add('block');
+                
+                document.getElementById('detailTitle').innerText = 'Chi tiết Dòng Tiền (Lãi Đơn)';
+                
+                document.getElementById('stat1Label').innerText = 'Gốc còn lại:';
+                document.getElementById('stat1').innerText = formatMoney(currentPrincipal);
+                
+                document.getElementById('stat2Label').innerText = 'Lãi tích lũy chưa trả:';
+                document.getElementById('stat2').innerText = formatMoney(accumulatedInterest);
+                
+                document.getElementById('stat3Label').innerText = 'Tổng đã thu hồi:';
+                document.getElementById('stat3').innerText = formatMoney(totalPaid);
             }
             
-            document.getElementById('summaryText').innerText = `Gốc ban đầu: ${formatMoney(principal)} | Tổng đã thu hồi: ${formatMoney(totalPaid)}`;
             document.getElementById('tableBody').innerHTML = tableRows.join('');
-
             updateChart(chartLabels, chartData);
         }
 
@@ -372,15 +434,16 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Tổng dư nợ cuối kỳ (VNĐ)',
+                        label: 'Tổng dư nợ (VNĐ)',
                         data: data,
                         borderColor: '#2563eb',
                         backgroundColor: 'rgba(37, 99, 235, 0.1)',
                         borderWidth: 2,
                         pointBackgroundColor: '#1e40af',
-                        pointRadius: 4,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
                         fill: true,
-                        tension: 0.2
+                        tension: 0.3
                     }]
                 },
                 options: {
