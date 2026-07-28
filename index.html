@@ -412,7 +412,7 @@
                 document.getElementById('stat1').innerText = formatMoney(currentPrincipal);
                 
                 document.getElementById('stat2Label').innerText = 'Lãi tích lũy chưa trả:';
-                document.getElementById('stat2').innerText = formatMoney(accumulatedInterest);
+                document.getElementById('stat2').innerText = "+" + formatMoney(accumulatedInterest);
                 
                 document.getElementById('stat3Label').innerText = 'Tổng đã thu hồi:';
                 document.getElementById('stat3').innerText = "-" + formatMoney(totalPaid);
