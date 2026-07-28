@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Tính Lãi Vay Gia Đình</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 p-4 md:p-8 text-slate-800">
+
+    <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-center text-blue-700 mb-8">ỨNG DỤNG TÍNH TOÁN DƯ NỢ</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- CỘT NHẬP LIỆU -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h2 class="font-bold text-lg mb-4 border-b border-blue-200 pb-2">Thông Tin Khoản Vay</h2>
+                    
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium mb-1">Tiền gốc ban đầu (VNĐ)</label>
+                        <input type="number" id="principal" value="3500000000" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium mb-1">Lãi suất hàng năm (%)</label>
+                        <input type="number" id="rate" value="8" step="0.1" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tháng vay</label>
+                            <input type="month" id="startDate" value="2021-10" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tháng kết toán</label>
+                            <input type="month" id="endDate" value="2028-12" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                    <div class="flex justify-between items-center border-b border-emerald-200 pb-2 mb-4">
+                        <h2 class="font-bold text-lg">Các Khoản Đã Thu Hồi</h2>
+                        <button onclick="addRepaymentRow()" class="bg-emerald-600 text-white px-2 py-1 rounded text-sm hover:bg-emerald-700">+ Thêm</button>
+                    </div>
+                    
+                    <div id="repayments-container" class="space-y-3">
+                        <!-- Khoản trả 1 -->
+                        <div class="repayment-row flex gap-2 items-center">
+                            <input type="month" value="2023-02" class="repay-date w-1/2 p-2 border rounded text-sm">
+                            <input type="number" value="100000000" class="repay-amount w-1/2 p-2 border rounded text-sm" placeholder="Số tiền (VNĐ)">
+                            <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button>
+                        </div>
+                        <!-- Khoản trả 2 -->
+                        <div class="repayment-row flex gap-2 items-center">
+                            <input type="month" value="2026-04" class="repay-date w-1/2 p-2 border rounded text-sm">
+                            <input type="number" value="100000000" class="repay-amount w-1/2 p-2 border rounded text-sm" placeholder="Số tiền (VNĐ)">
+                            <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="calculate()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg">
+                    TÍNH TOÁN & CẬP NHẬT BIỂU ĐỒ
+                </button>
+            </div>
+
+            <!-- CỘT KẾT QUẢ -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Tổng quan -->
+                <div class="bg-gray-800 text-white p-6 rounded-lg shadow">
+                    <h2 class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-1">Tổng dư nợ dự kiến tại thời điểm kết toán</h2>
+                    <div id="finalBalance" class="text-4xl font-bold text-emerald-400">0 VNĐ</div>
+                    <div id="summaryText" class="text-gray-400 mt-2 text-sm"></div>
+                </div>
+
+                <!-- Biểu đồ -->
+                <div class="bg-white p-4 border rounded-lg shadow-inner">
+                    <canvas id="balanceChart" height="120"></canvas>
+                </div>
+
+                <!-- Bảng chi tiết -->
+                <div class="overflow-x-auto border rounded-lg">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-700 text-sm">
+                                <th class="p-3 border-b">Thời điểm</th>
+                                <th class="p-3 border-b text-right">Dư nợ đầu kỳ</th>
+                                <th class="p-3 border-b text-right">Tiền thu hồi</th>
+                                <th class="p-3 border-b text-right">Dư nợ cuối kỳ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="text-sm">
+                            <!-- JS sinh dữ liệu vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+
+        // Định dạng tiền tệ VNĐ
+        const formatMoney = (amount) => {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Math.round(amount));
+        };
+
+        // Thêm dòng nhập khoản thu hồi
+        function addRepaymentRow() {
+            const container = document.getElementById('repayments-container');
+            const row = document.createElement('div');
+            row.className = 'repayment-row flex gap-2 items-center';
+            row.innerHTML = `
+                <input type="month" class="repay-date w-1/2 p-2 border rounded text-sm">
+                <input type="number" class="repay-amount w-1/2 p-2 border rounded text-sm" placeholder="Số tiền (VNĐ)">
+                <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button>
+            `;
+            container.appendChild(row);
+        }
+
+        // Hàm chính tính toán nợ
+        function calculate() {
+            const principal = parseFloat(document.getElementById('principal').value) || 0;
+            const annualRate = parseFloat(document.getElementById('rate').value) || 0;
+            const monthlyRate = annualRate / 100 / 12;
+
+            const startInput = document.getElementById('startDate').value;
+            const endInput = document.getElementById('endDate').value;
+            
+            if(!startInput || !endInput) {
+                alert("Vui lòng chọn đầy đủ thời gian vay và kết toán!");
+                return;
+            }
+
+            const startDate = new Date(startInput);
+            const endDate = new Date(endInput);
+
+            // Lấy danh sách các khoản trả
+            const repaymentElements = document.querySelectorAll('.repayment-row');
+            const repayments = {};
+            
+            repaymentElements.forEach(row => {
+                const dateVal = row.querySelector('.repay-date').value;
+                const amountVal = parseFloat(row.querySelector('.repay-amount').value) || 0;
+                if (dateVal && amountVal > 0) {
+                    repayments[dateVal] = (repayments[dateVal] || 0) + amountVal;
+                }
+            });
+
+            let currentBalance = principal;
+            let currentYear = startDate.getFullYear();
+            let currentMonth = startDate.getMonth(); // 0-11
+            
+            const endYear = endDate.getFullYear();
+            const endMonth = endDate.getMonth();
+
+            const chartLabels = [];
+            const chartData = [];
+            const tableRows = [];
+            
+            let totalPaid = 0;
+
+            // Chạy vòng lặp từng tháng một
+            while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+                
+                const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+                const displayDate = `${currentMonth + 1}/${currentYear}`;
+                
+                const startBalance = currentBalance;
+                
+                // 1. Tính lãi tháng này và cộng vào gốc
+                const interest = currentBalance * monthlyRate;
+                currentBalance += interest;
+                
+                // 2. Trừ đi tiền thu hồi (nếu có) trong tháng này
+                const repaidThisMonth = repayments[monthKey] || 0;
+                if (repaidThisMonth > 0) {
+                    currentBalance -= repaidThisMonth;
+                    totalPaid += repaidThisMonth;
+                }
+
+                // Lưu dữ liệu để hiển thị (Lưu mốc cuối mỗi năm, các tháng có trả tiền, và tháng cuối cùng)
+                if (currentMonth === 11 || repaidThisMonth > 0 || (currentYear === endYear && currentMonth === endMonth)) {
+                    chartLabels.push(displayDate);
+                    chartData.push(currentBalance);
+                    
+                    tableRows.push(`
+                        <tr class="border-b hover:bg-gray-50 transition ${repaidThisMonth > 0 ? 'bg-emerald-50' : ''}">
+                            <td class="p-3">${displayDate} ${repaidThisMonth > 0 ? '<span class="text-xs bg-emerald-500 text-white px-1 rounded ml-1">Có trả</span>' : ''}</td>
+                            <td class="p-3 text-right text-gray-500">${formatMoney(startBalance)}</td>
+                            <td class="p-3 text-right font-semibold text-emerald-600">${repaidThisMonth > 0 ? formatMoney(repaidThisMonth) : '-'}</td>
+                            <td class="p-3 text-right font-bold">${formatMoney(currentBalance)}</td>
+                        </tr>
+                    `);
+                }
+
+                // Tăng tháng lên
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+            }
+
+            // Cập nhật giao diện
+            document.getElementById('finalBalance').innerText = formatMoney(currentBalance);
+            document.getElementById('summaryText').innerText = `Gốc ban đầu: ${formatMoney(principal)} | Tổng đã thu hồi: ${formatMoney(totalPaid)}`;
+            document.getElementById('tableBody').innerHTML = tableRows.join('');
+
+            updateChart(chartLabels, chartData);
+        }
+
+        // Vẽ biểu đồ
+        function updateChart(labels, data) {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Dư nợ (VNĐ)',
+                        data: data,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#1e40af',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatMoney(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 1000000000).toFixed(1) + ' Tỷ';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Tự động chạy lần đầu khi mở app
+        window.onload = calculate;
+    </script>
+</body>
+</html>
