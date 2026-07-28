@@ -415,7 +415,7 @@
                 document.getElementById('stat2').innerText = formatMoney(accumulatedInterest);
                 
                 document.getElementById('stat3Label').innerText = 'Tổng đã thu hồi:';
-                document.getElementById('stat3').innerText = formatMoney(totalPaid);
+                document.getElementById('stat3').innerText = "-" + formatMoney(totalPaid);
             }
             
             document.getElementById('tableBody').innerHTML = tableRows.join('');
